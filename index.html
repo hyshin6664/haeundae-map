@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>해운대 가는 길</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  html,body{margin:0;height:100%;font-family:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+  #map{position:absolute;inset:0;background:#eaf3fb}
+  .pin{font-size:26px;line-height:1;text-shadow:0 1px 3px #0007}
+  .car{font-size:30px;line-height:1;filter:drop-shadow(0 2px 3px #0008)}
+  .lbl{background:#fff;border:2px solid #16a34a;border-radius:9px;padding:2px 8px;font-weight:800;font-size:13px;color:#15803d;white-space:nowrap}
+  .lbl.r{border-color:#dc2626;color:#b91c1c}
+  /* 상단 상태바 */
+  .bar{position:absolute;top:10px;left:10px;right:10px;z-index:1000;display:flex;gap:8px;flex-wrap:wrap;align-items:center;pointer-events:none}
+  .bar .chip{pointer-events:auto;background:rgba(255,255,255,.95);border:1px solid #fdba74;border-radius:11px;padding:7px 13px;font-weight:800;font-size:13px;color:#9a3412;box-shadow:0 3px 10px #0002}
+  .bar .stat{background:rgba(255,255,255,.95);border:1px solid #cbd5e1;border-radius:11px;padding:7px 13px;font-weight:700;font-size:12.5px;color:#334155;box-shadow:0 3px 10px #0002}
+  /* 버튼 */
+  .btns{position:absolute;right:12px;bottom:22px;z-index:1000;display:flex;flex-direction:column;gap:9px}
+  .btns button{width:auto;min-width:54px;padding:11px 14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 5px 16px #0003;color:#fff}
+  .b-loc{background:linear-gradient(135deg,#2563eb,#0ea5e9)}
+  .b-follow{background:linear-gradient(135deg,#64748b,#94a3b8)}
+  .b-follow.on{background:linear-gradient(135deg,#16a34a,#22c55e)}
+  .b-fit{background:linear-gradient(135deg,#d97706,#f59e0b)}
+  .toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);z-index:1100;background:rgba(15,23,42,.94);color:#fff;font-weight:700;font-size:13px;padding:11px 18px;border-radius:12px;max-width:88vw;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 8px 24px #0004}
+  .toast.show{opacity:1}
+  .leaflet-control-attribution{font-size:10px}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="bar">
+  <span class="chip">🚗 우리 집(방학동) → 🏖 해운대</span>
+  <span class="stat" id="stat">위치 권한을 허용하면 현재 위치가 🚗로 표시돼요</span>
+</div>
+<div class="btns">
+  <button class="b-loc" id="bLoc" title="현재 위치">📍 내 위치</button>
+  <button class="b-follow" id="bFollow" title="따라가기">🎯 따라가기</button>
+  <button class="b-fit" id="bFit" title="전체 경로">🗺 전체</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var HOME=[37.6537,127.0447], HD=[35.1587,129.1604];
+var map=L.map('map',{zoomControl:true}).setView([36.5,127.9],7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+
+// 출발/도착 마커
+L.marker(HOME,{icon:L.divIcon({className:'',html:'<div class="pin">🏠</div>',iconSize:[26,26],iconAnchor:[13,26]})})
+  .addTo(map).bindTooltip('우리 집·방학동',{permanent:true,direction:'right',className:'lbl',offset:[6,-13]});
+L.marker(HD,{icon:L.divIcon({className:'',html:'<div class="pin">🏖</div>',iconSize:[26,26],iconAnchor:[13,26]})})
+  .addTo(map).bindTooltip('해운대 모래축제',{permanent:true,direction:'right',className:'lbl r',offset:[6,-13]});
+
+var routeLayer=null, routeBounds=null;
+fetch('route.json?v=1').then(function(r){return r.json();}).then(function(g){
+  routeLayer=L.geoJSON(g,{style:{color:'#ea580c',weight:6,opacity:.92}}).addTo(map);
+  routeBounds=routeLayer.getBounds();
+  map.fitBounds(routeBounds,{padding:[50,50]});
+  if(g.dist_km){document.getElementById('stat').textContent='경로 약 '+g.dist_km+'km · 차로 약 '+Math.round(g.dur_min/60*10)/10+'시간 (실제 도로)';}
+}).catch(function(){ map.fitBounds(L.latLngBounds([HOME,HD]),{padding:[50,50]}); });
+
+// 현재 위치(자동차)
+var carMarker=null, accCircle=null, follow=true, firstFix=true;
+var toastEl=document.getElementById('toast');
+function toast(m){toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(toastEl._t);toastEl._t=setTimeout(function(){toastEl.classList.remove('show');},3500);}
+function haversine(a,b){var R=6371,dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180,la1=a[0]*Math.PI/180,la2=b[0]*Math.PI/180;var x=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+
+function onPos(p){
+  var ll=[p.coords.latitude,p.coords.longitude];
+  var acc=p.coords.accuracy||0;
+  if(!carMarker){
+    carMarker=L.marker(ll,{icon:L.divIcon({className:'',html:'<div class="car">🚗</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);
+    accCircle=L.circle(ll,{radius:acc,color:'#2563eb',weight:1,fillColor:'#3b82f6',fillOpacity:.12}).addTo(map);
+  }else{
+    carMarker.setLatLng(ll); accCircle.setLatLng(ll).setRadius(acc);
+  }
+  var remain=haversine(ll,HD);
+  document.getElementById('stat').textContent='🚗 현재 위치 추적 중 · 해운대까지 직선 '+remain.toFixed(0)+'km (정확도 ±'+Math.round(acc)+'m)';
+  if(firstFix){firstFix=false; map.setView(ll,12); toast('현재 위치를 찾았어요 🚗');}
+  else if(follow){ map.panTo(ll); }
+}
+function onErr(e){
+  var msg = e.code===1 ? '위치 권한이 거부됐어요. 브라우저 주소창의 자물쇠 → 위치 허용으로 바꿔주세요.'
+          : e.code===2 ? '위치를 찾을 수 없어요(신호 약함). 잠시 후 다시 시도해요.'
+          : '위치 확인 시간 초과. 다시 시도해요.';
+  document.getElementById('stat').textContent='⚠️ '+msg;
+  toast(msg);
+}
+var watchId=null;
+function startWatch(){
+  if(!('geolocation' in navigator)){ toast('이 기기는 위치 기능을 지원하지 않아요.'); return; }
+  if(watchId!=null) navigator.geolocation.clearWatch(watchId);
+  watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
+}
+// 버튼
+document.getElementById('bLoc').onclick=function(){ firstFix=true; follow=true; setFollowUI(); startWatch(); toast('현재 위치 확인 중…'); };
+function setFollowUI(){var b=document.getElementById('bFollow'); b.classList.toggle('on',follow); b.textContent=follow?'🎯 따라가는 중':'🎯 따라가기';}
+document.getElementById('bFollow').onclick=function(){ follow=!follow; setFollowUI(); if(follow&&carMarker) map.panTo(carMarker.getLatLng()); };
+document.getElementById('bFit').onclick=function(){ if(routeBounds) map.fitBounds(routeBounds,{padding:[50,50]}); };
+// 지도를 직접 움직이면 따라가기 해제
+map.on('dragstart',function(){ if(follow){follow=false;setFollowUI();} });
+
+setFollowUI();
+startWatch(); // 로드 시 자동 시작(권한 프롬프트)
+</script>
+</body>
+</html>
