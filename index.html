@@ -42,6 +42,7 @@
   .seg.go button.on.up{background:linear-gradient(135deg,#0d9488,#14b8a6)}
   .seg.bs button.on.food{background:linear-gradient(135deg,#ea580c,#f59e0b);color:#fff}
   .seg.bs button.on.play{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff}
+  .seg.bs button.on.fest{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff}
   .toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:1100;background:rgba(15,23,42,.94);color:#fff;font-weight:700;font-size:13px;padding:11px 18px;border-radius:12px;max-width:88vw;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 8px 24px #0004}
   .toast.show{opacity:1}
   .sheet{position:absolute;left:10px;right:10px;bottom:12px;z-index:1200;background:#fff;border:1px solid #fdba74;border-radius:14px;padding:12px 15px;box-shadow:0 -4px 20px #0003;display:none}
@@ -130,7 +131,7 @@ var BUSAN=[
 {n:'해리단길',c:'food',kid:0,d:'트렌디 카페·식당',lat:35.16537,lon:129.15762},
 {n:'센텀시티 신세계',c:'food',kid:1,d:'실내 식당가·키즈·비올때 안전',lat:35.16876,lon:129.12964}
 ];
-var plMarkers=[],destM=null,curCat='food';
+var plMarkers=[],destM=null,curCat='fest';
 function clearPL(){plMarkers.forEach(function(m){map.removeLayer(m);});plMarkers=[];}
 function plLinks(p){
   var foodQ = p.c==='food' ? naver(p.n+' 아이랑 비해산물 맛집 오늘 영업') : naver(p.n+' 오늘 영업시간');
@@ -148,6 +149,15 @@ function renderPL(){
     plMarkers.push(m);
   });
 }
+function showFest(){
+  showSheet('🏖 해운대 모래축제 (도착지)',
+    '본행사 5/15~5/18(종료) · 모래조각 전시 ~6/14 · 해운대해수욕장·구남로 · ⚠️ 내일 6/6은 전시만 (윤오 회·생선 X)',
+    [['⚠️ 내일 전시 운영 확인',naver('해운대 모래축제 모래조각 전시 운영시간'),'chk'],
+     ['🗺 해운대 길찾기',nmap('해운대해수욕장')],
+     ['🅿 주차 확인',naver('해운대해수욕장 공영주차장 혼잡')],
+     ['🌤 해운대 날씨',naver('해운대 날씨')]]);
+  map.setView(HD,14);
+}
 
 /* ===== 탭 ===== */
 var TAB=(location.search.indexOf('tab=busan')>=0)?'bs':'go';
@@ -160,10 +170,12 @@ function buildBar(){
     document.getElementById('segDown').onclick=function(){curDir='down';this.classList.add('on');document.getElementById('segUp').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderSA();};
     document.getElementById('segUp').onclick=function(){curDir='up';this.classList.add('on','up');document.getElementById('segDown').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderSA();};
   }else{
-    bar.innerHTML='<span class="seg bs"><button id="segFood" class="food on">🍽 식당</button><button id="segPlay" class="play">🎡 놀거리</button></span>'+
+    bar.innerHTML='<span class="seg bs"><button id="segFest" class="fest on">🏖 축제</button><button id="segFood" class="food">🍽 식당</button><button id="segPlay" class="play">🎡 놀거리</button></span>'+
       '<span class="warn">⚠️ 추천 후보예요 · 영업/휴무는 「오늘 영업 확인」으로 방문 전 꼭 확인 (윤오 회·생선 X)</span>';
-    document.getElementById('segFood').onclick=function(){curCat='food';this.classList.add('on');document.getElementById('segPlay').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderPL();};
-    document.getElementById('segPlay').onclick=function(){curCat='play';this.classList.add('on');document.getElementById('segFood').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderPL();};
+    var segSel=function(id){['segFest','segFood','segPlay'].forEach(function(x){document.getElementById(x).classList.toggle('on',x===id);});};
+    document.getElementById('segFest').onclick=function(){curCat='fest';segSel('segFest');renderPL();showFest();};
+    document.getElementById('segFood').onclick=function(){curCat='food';segSel('segFood');document.getElementById('sheet').classList.remove('show');renderPL();};
+    document.getElementById('segPlay').onclick=function(){curCat='play';segSel('segPlay');document.getElementById('sheet').classList.remove('show');renderPL();};
   }
 }
 function setTab(t){
@@ -184,10 +196,13 @@ function setTab(t){
     // 가는길 요소 제거
     clearSA(); if(routeLayer)map.removeLayer(routeLayer); map.removeLayer(homeM);
     hdM.addTo(map); // 목적지(해운대)는 부산 탭에도 표시
+    curCat='fest';
     destM=L.marker(HD,{icon:divPin('📍',true)}).addTo(map).bindTooltip('목적지 · 해운대 모래축제',{permanent:true,direction:'top',className:'lbl r',offset:[0,-26]});
+    destM.on('click',showFest);
     renderPL();
-    document.getElementById('dockHint').textContent='⭐=아이 OK · 네모 누르면 정보·오늘 영업 확인';
+    document.getElementById('dockHint').textContent='🏖 축제 / 🍽 식당 / 🎡 놀거리 · 네모 누르면 정보';
     map.setView([35.162,129.16],13);
+    showFest();
   }
 }
 document.getElementById('tabGo').onclick=function(){setTab('go');};
