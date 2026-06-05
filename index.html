@@ -70,7 +70,7 @@ L.marker(HOME,{icon:L.divIcon({className:'',html:'<div class="pin">🏠</div>',i
 L.marker(HD,{icon:L.divIcon({className:'',html:'<div class="pin">🏖</div>',iconSize:[26,26],iconAnchor:[13,26]})}).addTo(map).bindTooltip('해운대 모래축제',{permanent:true,direction:'right',className:'lbl r',offset:[6,-13]});
 
 var routeBounds=null;
-fetch('route.json?v=3').then(function(r){return r.json();}).then(function(g){
+fetch('route.json?v=4').then(function(r){return r.json();}).then(function(g){
   var rl=L.geoJSON(g,{style:{color:'#ea580c',weight:6,opacity:.9}}).addTo(map);
   routeBounds=rl.getBounds(); map.fitBounds(routeBounds,{padding:[50,50]});
 }).catch(function(){ map.fitBounds(L.latLngBounds([HOME,HD]),{padding:[50,50]}); });
@@ -96,7 +96,7 @@ function renderSA(){
     m._sa=s;m.on('click',function(){selectSA(s);});saMarkers.push(m);
   });
 }
-fetch('restareas.json?v=3').then(function(r){return r.json();}).then(function(a){SA=a;renderSA();}).catch(function(){});
+fetch('restareas.json?v=4').then(function(r){return r.json();}).then(function(a){SA=a;renderSA();}).catch(function(){});
 document.getElementById('segDown').onclick=function(){curDir='down';this.classList.add('on');document.getElementById('segUp').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderSA();};
 document.getElementById('segUp').onclick=function(){curDir='up';this.classList.add('on','up');document.getElementById('segDown').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderSA();};
 
