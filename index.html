@@ -12,98 +12,124 @@
   .car{font-size:30px;line-height:1;filter:drop-shadow(0 2px 3px #0008)}
   .lbl{background:#fff;border:2px solid #16a34a;border-radius:9px;padding:2px 8px;font-weight:800;font-size:13px;color:#15803d;white-space:nowrap}
   .lbl.r{border-color:#dc2626;color:#b91c1c}
-  /* 상단 상태바 */
+  /* 휴게소 네모 버튼 */
+  .sa{background:#fff7ed;border:2px solid #ea580c;border-radius:7px;padding:3px 6px;font-weight:800;font-size:11px;color:#9a3412;box-shadow:0 2px 6px #0003;white-space:nowrap;text-align:center;cursor:pointer;line-height:1.1}
+  .sa .km{display:block;font-weight:700;font-size:8.5px;opacity:.75;margin-top:1px}
+  .sa.up{background:#eff6ff;border-color:#2563eb;color:#1d4ed8}
+  .sa.sel{outline:3px solid #fbbf24;outline-offset:1px;transform:scale(1.12);z-index:1000}
   .bar{position:absolute;top:10px;left:10px;right:10px;z-index:1000;display:flex;gap:8px;flex-wrap:wrap;align-items:center;pointer-events:none}
-  .bar .chip{pointer-events:auto;background:rgba(255,255,255,.95);border:1px solid #fdba74;border-radius:11px;padding:7px 13px;font-weight:800;font-size:13px;color:#9a3412;box-shadow:0 3px 10px #0002}
-  .bar .stat{background:rgba(255,255,255,.95);border:1px solid #cbd5e1;border-radius:11px;padding:7px 13px;font-weight:700;font-size:12.5px;color:#334155;box-shadow:0 3px 10px #0002}
-  /* 버튼 */
+  .bar>*{pointer-events:auto}
+  .chip{background:rgba(255,255,255,.95);border:1px solid #fdba74;border-radius:11px;padding:7px 13px;font-weight:800;font-size:13px;color:#9a3412;box-shadow:0 3px 10px #0002}
+  .stat{background:rgba(255,255,255,.95);border:1px solid #cbd5e1;border-radius:11px;padding:7px 13px;font-weight:700;font-size:12.5px;color:#334155;box-shadow:0 3px 10px #0002}
+  .seg{display:inline-flex;background:rgba(255,255,255,.95);border:1px solid #cbd5e1;border-radius:11px;overflow:hidden;box-shadow:0 3px 10px #0002}
+  .seg button{border:0;background:transparent;padding:7px 13px;font-family:inherit;font-weight:800;font-size:12.5px;color:#64748b;cursor:pointer}
+  .seg button.on{background:linear-gradient(135deg,#ea580c,#f59e0b);color:#fff}
+  .seg button.on.up{background:linear-gradient(135deg,#2563eb,#0ea5e9)}
   .btns{position:absolute;right:12px;bottom:22px;z-index:1000;display:flex;flex-direction:column;gap:9px}
-  .btns button{width:auto;min-width:54px;padding:11px 14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 5px 16px #0003;color:#fff}
-  .b-loc{background:linear-gradient(135deg,#2563eb,#0ea5e9)}
-  .b-follow{background:linear-gradient(135deg,#64748b,#94a3b8)}
-  .b-follow.on{background:linear-gradient(135deg,#16a34a,#22c55e)}
-  .b-fit{background:linear-gradient(135deg,#d97706,#f59e0b)}
+  .btns button{min-width:54px;padding:11px 14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 5px 16px #0003;color:#fff}
+  .b-loc{background:linear-gradient(135deg,#2563eb,#0ea5e9)} .b-follow{background:linear-gradient(135deg,#64748b,#94a3b8)} .b-follow.on{background:linear-gradient(135deg,#16a34a,#22c55e)} .b-fit{background:linear-gradient(135deg,#d97706,#f59e0b)}
   .toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);z-index:1100;background:rgba(15,23,42,.94);color:#fff;font-weight:700;font-size:13px;padding:11px 18px;border-radius:12px;max-width:88vw;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 8px 24px #0004}
   .toast.show{opacity:1}
+  /* 전체화면(비임베드)일 때만 뜨는 하단 정보 시트 */
+  .sheet{position:absolute;left:10px;right:10px;bottom:12px;z-index:1200;background:#fff;border:1px solid #fdba74;border-radius:14px;padding:12px 15px;box-shadow:0 -4px 20px #0003;display:none}
+  .sheet.show{display:block}
+  .sheet h3{margin:0 0 6px;font-size:15px;color:#9a3412}
+  .sheet .meta{font-size:12px;color:#475569;font-weight:700;margin-bottom:8px}
+  .sheet a{display:inline-block;margin:3px 6px 0 0;padding:6px 11px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;color:#1d4ed8;font-weight:800;font-size:12px;text-decoration:none}
+  .sheet .x{position:absolute;right:10px;top:8px;border:0;background:none;font-size:18px;cursor:pointer;color:#94a3b8}
   .leaflet-control-attribution{font-size:10px}
 </style>
 </head>
 <body>
 <div id="map"></div>
 <div class="bar">
-  <span class="chip">🚗 우리 집(방학동) → 🏖 해운대</span>
-  <span class="stat" id="stat">위치 권한을 허용하면 현재 위치가 🚗로 표시돼요</span>
+  <span class="chip">🚗 우리 집 → 🏖 해운대</span>
+  <span class="seg" id="seg">
+    <button id="segDown" class="on" data-dir="down">⬇ 가는길</button>
+    <button id="segUp" data-dir="up">⬆ 오는길</button>
+  </span>
+  <span class="stat" id="stat">위치 허용하면 현재 위치가 🚗로 표시돼요 · 휴게소 네모를 누르면 정보</span>
 </div>
 <div class="btns">
-  <button class="b-loc" id="bLoc" title="현재 위치">📍 내 위치</button>
-  <button class="b-follow" id="bFollow" title="따라가기">🎯 따라가기</button>
-  <button class="b-fit" id="bFit" title="전체 경로">🗺 전체</button>
+  <button class="b-loc" id="bLoc">📍 내 위치</button>
+  <button class="b-follow" id="bFollow">🎯 따라가기</button>
+  <button class="b-fit" id="bFit">🗺 전체</button>
 </div>
 <div class="toast" id="toast"></div>
+<div class="sheet" id="sheet"><button class="x" id="sheetX">✕</button><h3 id="shName"></h3><div class="meta" id="shMeta"></div><div id="shLinks"></div></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 var HOME=[37.6537,127.0447], HD=[35.1587,129.1604];
+var EMBEDDED = (window.parent && window.parent!==window);
 var map=L.map('map',{zoomControl:true}).setView([36.5,127.9],7);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+L.marker(HOME,{icon:L.divIcon({className:'',html:'<div class="pin">🏠</div>',iconSize:[26,26],iconAnchor:[13,26]})}).addTo(map).bindTooltip('우리 집·방학동',{permanent:true,direction:'right',className:'lbl',offset:[6,-13]});
+L.marker(HD,{icon:L.divIcon({className:'',html:'<div class="pin">🏖</div>',iconSize:[26,26],iconAnchor:[13,26]})}).addTo(map).bindTooltip('해운대 모래축제',{permanent:true,direction:'right',className:'lbl r',offset:[6,-13]});
 
-// 출발/도착 마커
-L.marker(HOME,{icon:L.divIcon({className:'',html:'<div class="pin">🏠</div>',iconSize:[26,26],iconAnchor:[13,26]})})
-  .addTo(map).bindTooltip('우리 집·방학동',{permanent:true,direction:'right',className:'lbl',offset:[6,-13]});
-L.marker(HD,{icon:L.divIcon({className:'',html:'<div class="pin">🏖</div>',iconSize:[26,26],iconAnchor:[13,26]})})
-  .addTo(map).bindTooltip('해운대 모래축제',{permanent:true,direction:'right',className:'lbl r',offset:[6,-13]});
-
-var routeLayer=null, routeBounds=null;
-fetch('route.json?v=1').then(function(r){return r.json();}).then(function(g){
-  routeLayer=L.geoJSON(g,{style:{color:'#ea580c',weight:6,opacity:.92}}).addTo(map);
-  routeBounds=routeLayer.getBounds();
-  map.fitBounds(routeBounds,{padding:[50,50]});
-  if(g.dist_km){document.getElementById('stat').textContent='경로 약 '+g.dist_km+'km · 차로 약 '+Math.round(g.dur_min/60*10)/10+'시간 (실제 도로)';}
+var routeBounds=null;
+fetch('route.json?v=2').then(function(r){return r.json();}).then(function(g){
+  var rl=L.geoJSON(g,{style:{color:'#ea580c',weight:6,opacity:.9}}).addTo(map);
+  routeBounds=rl.getBounds(); map.fitBounds(routeBounds,{padding:[50,50]});
 }).catch(function(){ map.fitBounds(L.latLngBounds([HOME,HD]),{padding:[50,50]}); });
 
-// 현재 위치(자동차)
-var carMarker=null, accCircle=null, follow=true, firstFix=true;
+/* ===== 휴게소 ===== */
+var SA=[], saMarkers=[], curDir='down', selName=null;
+function shortName(n){ var s=n.replace(/휴게소[\s\S]*$/,'').replace(/\(.*?\)/g,'').replace(/(부산|서울|양평|인천|창원|마산|하남|일산)\s*방향/g,'').trim(); return s||n; }
+function saLinks(name){
+  var q=encodeURIComponent(name); var b=encodeURIComponent(shortName(name)+' 휴게소');
+  return [
+    ['🔎 휴게소 정보','https://search.naver.com/search.naver?query='+q],
+    ['🍜 맛거리','https://search.naver.com/search.naver?query='+b+' 맛집'],
+    ['🔌 전기차 충전','https://search.naver.com/search.naver?query='+q+' 전기차 충전소'],
+    ['🚦 실시간 혼잡','https://search.naver.com/search.naver?query='+q+' 혼잡']
+  ];
+}
+function dirKor(d){ return d==='down'?'가는길 (서울→부산)':'오는길 (부산→서울)'; }
+function selectSA(s){
+  selName=s.name;
+  saMarkers.forEach(function(m){ var el=m.getElement&&m.getElement(); if(el){var d=el.querySelector('.sa'); if(d) d.classList.toggle('sel', m._sa.name===s.name);} });
+  var payload={type:'restarea',name:s.name,short:shortName(s.name),dir:s.dir,dirKor:dirKor(s.dir),km:s.km,tokm:s.tokm,links:saLinks(s.name)};
+  if(EMBEDDED){ try{ window.parent.postMessage(payload,'*'); }catch(e){} }
+  else{ // 전체화면: 자체 시트
+    document.getElementById('shName').textContent='⛽ '+s.name;
+    document.getElementById('shMeta').textContent=dirKor(s.dir)+' · 출발에서 약 '+s.km+'km · 해운대까지 약 '+s.tokm+'km';
+    var L2=saLinks(s.name).map(function(a){return '<a href="'+a[1]+'" target="_blank" rel="noopener">'+a[0]+'</a>';}).join('');
+    document.getElementById('shLinks').innerHTML=L2;
+    document.getElementById('sheet').classList.add('show');
+  }
+}
+document.getElementById('sheetX').onclick=function(){document.getElementById('sheet').classList.remove('show');};
+function renderSA(){
+  saMarkers.forEach(function(m){map.removeLayer(m);}); saMarkers=[];
+  SA.filter(function(s){return s.dir===curDir;}).forEach(function(s){
+    var html='<div class="sa '+(s.dir==='up'?'up':'')+(s.name===selName?' sel':'')+'"><span>'+shortName(s.name)+'</span><span class="km">'+s.km+'km</span></div>';
+    var m=L.marker([s.lat,s.lon],{icon:L.divIcon({className:'',html:html,iconSize:[0,0],iconAnchor:[0,0]})}).addTo(map);
+    m._sa=s; m.on('click',function(){selectSA(s);}); saMarkers.push(m);
+  });
+}
+fetch('restareas.json?v=2').then(function(r){return r.json();}).then(function(a){ SA=a; renderSA(); }).catch(function(){});
+document.getElementById('segDown').onclick=function(){ curDir='down'; this.classList.add('on'); document.getElementById('segUp').classList.remove('on'); renderSA(); };
+document.getElementById('segUp').onclick=function(){ curDir='up'; this.classList.add('on','up'); document.getElementById('segDown').classList.remove('on'); renderSA(); };
+
+/* ===== 현재 위치(자동차) ===== */
+var carMarker=null,accCircle=null,follow=true,firstFix=true,watchId=null;
 var toastEl=document.getElementById('toast');
 function toast(m){toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(toastEl._t);toastEl._t=setTimeout(function(){toastEl.classList.remove('show');},3500);}
-function haversine(a,b){var R=6371,dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180,la1=a[0]*Math.PI/180,la2=b[0]*Math.PI/180;var x=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
-
-function onPos(p){
-  var ll=[p.coords.latitude,p.coords.longitude];
-  var acc=p.coords.accuracy||0;
-  if(!carMarker){
-    carMarker=L.marker(ll,{icon:L.divIcon({className:'',html:'<div class="car">🚗</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);
-    accCircle=L.circle(ll,{radius:acc,color:'#2563eb',weight:1,fillColor:'#3b82f6',fillOpacity:.12}).addTo(map);
-  }else{
-    carMarker.setLatLng(ll); accCircle.setLatLng(ll).setRadius(acc);
-  }
-  var remain=haversine(ll,HD);
-  document.getElementById('stat').textContent='🚗 현재 위치 추적 중 · 해운대까지 직선 '+remain.toFixed(0)+'km (정확도 ±'+Math.round(acc)+'m)';
-  if(firstFix){firstFix=false; map.setView(ll,12); toast('현재 위치를 찾았어요 🚗');}
-  else if(follow){ map.panTo(ll); }
-}
-function onErr(e){
-  var msg = e.code===1 ? '위치 권한이 거부됐어요. 브라우저 주소창의 자물쇠 → 위치 허용으로 바꿔주세요.'
-          : e.code===2 ? '위치를 찾을 수 없어요(신호 약함). 잠시 후 다시 시도해요.'
-          : '위치 확인 시간 초과. 다시 시도해요.';
-  document.getElementById('stat').textContent='⚠️ '+msg;
-  toast(msg);
-}
-var watchId=null;
-function startWatch(){
-  if(!('geolocation' in navigator)){ toast('이 기기는 위치 기능을 지원하지 않아요.'); return; }
-  if(watchId!=null) navigator.geolocation.clearWatch(watchId);
-  watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
-}
-// 버튼
-document.getElementById('bLoc').onclick=function(){ firstFix=true; follow=true; setFollowUI(); startWatch(); toast('현재 위치 확인 중…'); };
-function setFollowUI(){var b=document.getElementById('bFollow'); b.classList.toggle('on',follow); b.textContent=follow?'🎯 따라가는 중':'🎯 따라가기';}
-document.getElementById('bFollow').onclick=function(){ follow=!follow; setFollowUI(); if(follow&&carMarker) map.panTo(carMarker.getLatLng()); };
-document.getElementById('bFit').onclick=function(){ if(routeBounds) map.fitBounds(routeBounds,{padding:[50,50]}); };
-// 지도를 직접 움직이면 따라가기 해제
-map.on('dragstart',function(){ if(follow){follow=false;setFollowUI();} });
-
-setFollowUI();
-startWatch(); // 로드 시 자동 시작(권한 프롬프트)
+function hav(a,b){var R=6371,dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180,la1=a[0]*Math.PI/180,la2=b[0]*Math.PI/180;var x=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function onPos(p){var ll=[p.coords.latitude,p.coords.longitude],acc=p.coords.accuracy||0;
+  if(!carMarker){carMarker=L.marker(ll,{icon:L.divIcon({className:'',html:'<div class="car">🚗</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);accCircle=L.circle(ll,{radius:acc,color:'#2563eb',weight:1,fillColor:'#3b82f6',fillOpacity:.12}).addTo(map);}
+  else{carMarker.setLatLng(ll);accCircle.setLatLng(ll).setRadius(acc);}
+  document.getElementById('stat').textContent='🚗 현재 위치 추적 중 · 해운대까지 직선 '+hav(ll,HD).toFixed(0)+'km (정확도 ±'+Math.round(acc)+'m)';
+  if(firstFix){firstFix=false;map.setView(ll,12);toast('현재 위치를 찾았어요 🚗');}else if(follow){map.panTo(ll);} }
+function onErr(e){var m=e.code===1?'위치 권한이 거부됐어요. 주소창 자물쇠 → 위치 허용으로 바꿔주세요.':e.code===2?'위치를 찾을 수 없어요(신호 약함).':'위치 확인 시간 초과.';document.getElementById('stat').textContent='⚠️ '+m;toast(m);}
+function startWatch(){if(!('geolocation' in navigator)){toast('이 기기는 위치 기능 미지원');return;}if(watchId!=null)navigator.geolocation.clearWatch(watchId);watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:2000,timeout:15000});}
+function setFollowUI(){var b=document.getElementById('bFollow');b.classList.toggle('on',follow);b.textContent=follow?'🎯 따라가는 중':'🎯 따라가기';}
+document.getElementById('bLoc').onclick=function(){firstFix=true;follow=true;setFollowUI();startWatch();toast('현재 위치 확인 중…');};
+document.getElementById('bFollow').onclick=function(){follow=!follow;setFollowUI();if(follow&&carMarker)map.panTo(carMarker.getLatLng());};
+document.getElementById('bFit').onclick=function(){if(routeBounds)map.fitBounds(routeBounds,{padding:[50,50]});};
+map.on('dragstart',function(){if(follow){follow=false;setFollowUI();}});
+setFollowUI(); startWatch();
 </script>
 </body>
 </html>
