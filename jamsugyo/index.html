@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>🅿 잠수교 축제 주차</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  :root{--p50:#eff6ff;--p100:#dbeafe;--p200:#bfdbfe;--p600:#2563eb;--p800:#1e40af;--p900:#1e3a8a;--ink:#0f172a}
+  *{box-sizing:border-box}
+  html,body{height:100vh;overflow:hidden;margin:0;font-family:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;color:var(--ink);background:linear-gradient(135deg,rgba(219,234,254,.6),rgba(224,242,254,.5),rgba(237,233,254,.45))}
+  .header-frame{position:fixed;top:14px;left:14px;right:14px;height:78px;z-index:40;background:rgba(255,255,255,.5);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.7);border-radius:20px;box-shadow:0 6px 24px rgba(15,23,42,.07)}
+  .today-pill{position:fixed;top:24px;left:24px;z-index:50;background:linear-gradient(135deg,#dbeafe,#bfdbfe);padding:10px 22px;border-radius:14px;font-size:22px;font-weight:900;color:var(--p900);box-shadow:0 4px 14px rgba(37,99,235,.18);border:1px solid rgba(37,99,235,.25);text-decoration:none}
+  .wrap{height:100vh;padding:108px 18px 16px;display:flex;flex-direction:column;gap:12px}
+  .main{display:flex;gap:16px;flex:1;min-height:0}
+  .canvas{flex:2;display:flex;flex-direction:column;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.8);border-radius:18px;box-shadow:0 8px 24px rgba(15,23,42,.05);overflow:hidden;min-height:0}
+  .canvas-head{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px dashed var(--p200);flex-wrap:wrap}
+  .canvas-head h2{margin:0;font-size:15px;font-weight:900;color:var(--p900)}
+  .canvas-head .sub{font-size:11.5px;font-weight:700;color:var(--p800);opacity:.8}
+  .canvas-head .back{margin-left:auto;padding:5px 11px;border-radius:9px;background:#fff;text-decoration:none;color:#475569;font-size:11.5px;font-weight:800;border:1px solid var(--p200)}
+  #map{flex:1;min-height:0;position:relative;background:#eaf3fb}
+  .warn{position:absolute;top:8px;left:8px;right:8px;z-index:500;background:rgba(254,242,242,.96);border:1px solid #fecaca;border-radius:11px;padding:7px 12px;font-size:11.5px;font-weight:800;color:#b91c1c;box-shadow:0 3px 10px #0002;line-height:1.4}
+  .venue{font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px #0008)}
+  .vlbl{background:#fff;border:2px solid #dc2626;border-radius:9px;padding:2px 8px;font-weight:800;font-size:12.5px;color:#b91c1c;white-space:nowrap}
+  .pk{display:inline-block;background:#fff;border:1px solid #2563eb;border-radius:7px;padding:3px 8px;font-weight:800;font-size:11.5px;color:#1e40af;box-shadow:0 1px 5px rgba(0,0,0,.22);white-space:nowrap;text-align:center;line-height:1.15;cursor:pointer;transform:translate(-50%,-50%)}
+  .pk .r{display:block;font-size:8.5px;font-weight:800;color:#2563eb;opacity:.8}
+  .pk.rec1{border-color:#16a34a;color:#15803d;border-width:2px}
+  .pk.rec1 .r{color:#16a34a}
+  .pk.alt{border-color:#94a3b8;color:#475569}
+  .pk.sel{outline:2px solid #fbbf24;outline-offset:1px;transform:translate(-50%,-50%) scale(1.12);z-index:1000}
+  .aside{flex:1;min-width:280px;display:flex;flex-direction:column;min-height:0}
+  .detail-card{flex:1;display:flex;flex-direction:column;min-height:0;background:rgba(255,255,255,.92);border:1.5px solid var(--p200);border-radius:16px;padding:16px 18px;box-shadow:0 6px 20px rgba(37,99,235,.08)}
+  .detail-card .dttl{flex-shrink:0;font-size:15px;font-weight:900;color:var(--p900);margin-bottom:10px;padding-bottom:9px;border-bottom:1px dashed var(--p200)}
+  .detail-card .dbody{flex:1;overflow-y:auto;font-size:12.5px;color:#3f3f46;line-height:1.7;font-weight:600}
+  .detail-card .dbody table{width:100%;border-collapse:collapse;margin:2px 0 8px}
+  .detail-card .dbody table td{padding:6px 8px;border-bottom:1px solid var(--p100);vertical-align:top}
+  .detail-card .dbody table td.k{width:64px;font-weight:800;color:var(--p800);white-space:nowrap}
+  .detail-card .dbody a{display:inline-block;margin:5px 7px 0 0;padding:7px 12px;background:var(--p50);border:1px solid var(--p200);border-radius:10px;color:var(--p600);font-weight:800;font-size:12px;text-decoration:none}
+  .detail-card .dbody a.chk{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
+  .detail-card .dbody .rank{margin:0 0 4px;padding:8px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;color:#166534;font-weight:800;font-size:12px}
+  .detail-card .dbody .rank b{color:#15803d}
+  footer{flex-shrink:0;text-align:center;font-size:10.5px;color:#94a3b8;font-weight:700}
+  @media(max-width:900px){html,body{height:auto;overflow:auto}.wrap{height:auto;min-height:100vh;padding:104px 12px 16px}.main{flex-direction:column}.canvas{min-height:60vh}.aside{min-height:320px}}
+</style>
+</head>
+<body>
+<div class="header-frame"></div>
+<span class="today-pill" id="todayPill">06월 05일 (금)</span>
+<script>(function(){var W=['일','월','화','수','목','금','토'];var d=new Date();var mm=String(d.getMonth()+1).padStart(2,'0');var dd=String(d.getDate()).padStart(2,'0');document.getElementById('todayPill').textContent=mm+'월 '+dd+'일 ('+W[d.getDay()]+')';})();</script>
+
+<div class="wrap">
+  <div class="main">
+    <div class="canvas">
+      <div class="canvas-head">
+        <h2>🅿 잠수교 축제 주차</h2>
+        <span class="sub">반포한강공원 수변무대 · 6/7(일) · 🅿를 누르면 오른쪽에 안내</span>
+        <span style="margin-left:auto;font-size:11px;color:#94a3b8;font-weight:700">공유용</span>
+      </div>
+      <div id="map">
+        <div class="warn">⚠️ 6/7(일) 물축제 — 한강공원 주차 <b>매우 혼잡·이른 만차</b> 가능 · <b>잠수교는 ‘차 없는 거리’(차량 진입 X)</b> · 가능하면 대중교통(고속터미널·구반포역) · 주차 가능/요금은 「실시간 확인」으로</div>
+      </div>
+    </div>
+    <aside class="aside">
+      <div class="detail-card" id="card">
+        <div class="dttl" id="cardTtl">🅿 주차 안내 (추천 순위)</div>
+        <div class="dbody" id="cardBody"></div>
+      </div>
+    </aside>
+  </div>
+  <footer>잠수교 축제 주차 안내 · 반포한강공원 6/7(일) · 만차/요금은 방문 전 실시간 확인 · 지도 © OpenStreetMap</footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var VEN=[37.5113,126.9952]; // 행사장 수변무대(세빛섬·잠수교 남단 인근)
+var map=L.map('map',{zoomControl:true}).setView(VEN,15);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+function naver(q){return 'https://search.naver.com/search.naver?query='+encodeURIComponent(q);}
+function nmap(q){return 'https://map.naver.com/p/search/'+encodeURIComponent(q);}
+
+// 행사장
+L.marker(VEN,{icon:L.divIcon({className:'',html:'<div class="venue">🎪</div>',iconSize:[26,26],iconAnchor:[13,26]})}).addTo(map)
+  .bindTooltip('행사장 · 수변무대(반포한강공원)',{permanent:true,direction:'top',className:'vlbl',offset:[0,-24]});
+
+// 주차장 (좌표 OSM 검증 · 이름은 실제 명칭, 만차/요금은 실시간 확인)
+var PARK=[
+ {n:'세빛섬 주차장',rec:1,lat:37.5117,lon:126.9949,d:'행사장(수변무대) 바로 옆 · 유료 · 행사장 최단'},
+ {n:'반포한강공원 주차장(수변무대 인근)',rec:2,lat:37.50987,lon:126.99620,d:'공원 내 · 행사장 도보 3~5분'},
+ {n:'반포한강공원 주차장(잠수교 남단)',rec:3,lat:37.50841,lon:126.99332,d:'공원 내 · 안내센터 방향'},
+ {n:'센트럴시티·고속터미널 주차(대안)',rec:4,lat:37.5048,lon:127.0048,d:'대형 실내 · 만차 시 + 지하철 3·7·9호선 연결',alt:1}
+];
+function dist(a,b){var R=6371000,dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180,la1=a[0]*Math.PI/180,la2=b[0]*Math.PI/180;var x=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;return Math.round(R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)));}
+var card=document.getElementById('card'),cTtl=document.getElementById('cardTtl'),cBody=document.getElementById('cardBody');
+var pkMarkers=[];
+function selPark(p,m){
+  pkMarkers.forEach(function(x){var el=x.getElement&&x.getElement();if(el){var d=el.querySelector('.pk');if(d)d.classList.toggle('sel',x._p===p);}});
+  cTtl.textContent='🅿 '+p.n;
+  var dm=dist(VEN,[p.lat,p.lon]);
+  cBody.innerHTML='<table>'+
+    '<tr><td class="k">추천</td><td>'+(p.rec===1?'<b style="color:#15803d">1순위 (행사장 최단)</b>':(p.alt?'대안(만차 시)':p.rec+'순위'))+'</td></tr>'+
+    '<tr><td class="k">설명</td><td>'+p.d+'</td></tr>'+
+    '<tr><td class="k">행사장</td><td>직선 약 '+dm+'m</td></tr>'+
+    '</table>'+
+    '<a class="chk" href="'+naver(p.n+' 실시간 주차 만차 요금')+'" target="_blank" rel="noopener">🅿 실시간 주차·요금 확인</a>'+
+    '<a href="'+nmap(p.n)+'" target="_blank" rel="noopener">🗺 길찾기(지도)</a>'+
+    '<div style="margin-top:10px;font-size:11.5px;color:#64748b">※ 만차·요금·운영은 당일 상황에 따라 달라요. 위 「실시간 확인」으로 꼭 확인하세요.</div>';
+}
+PARK.forEach(function(p){
+  var cls='pk '+(p.rec===1?'rec1':'')+(p.alt?' alt':'');
+  var html='<div class="'+cls+'"><span>🅿 '+p.n.replace(/\(.*?\)/g,'').replace('주차장','').trim()+'</span><span class="r">'+(p.alt?'대안':p.rec+'순위')+'</span></div>';
+  var m=L.marker([p.lat,p.lon],{icon:L.divIcon({className:'',html:html})}).addTo(map);
+  m._p=p; m.on('click',function(){selPark(p,m);}); pkMarkers.push(m);
+});
+
+// 기본 안내(추천 순위 + 대중교통 + 행사 정보)
+cBody.innerHTML=
+ '<div class="rank">🅿 <b>추천</b> ① 세빛섬 → ② 반포한강공원(수변무대) → ③ 반포(잠수교 남단) → ④ 만차 시 센트럴시티+지하철</div>'+
+ '<div style="margin:9px 0 3px;font-weight:800;color:#1e40af">💬 후기·팁 (요약)</div>'+
+ '<ul style="margin:0;padding-left:17px;font-size:12px;color:#3f3f46;line-height:1.7">'+
+ '<li>주말 주차 <b>조기 만차</b> → <b>대중교통 강추</b>(구반포·고속터미널)</li>'+
+ '<li>잠수교 차량 X · <b>반포한강공원 회전교차로</b>로 주차장 진입</li>'+
+ '<li>만차 시 <b>잠원·반포 인근 공원 주차장</b></li>'+
+ '<li>물축제 → <b>여벌 옷·수건</b> (옷 젖어요)</li>'+
+ '<li>달빛놀이터 <b>대형 에어슬라이드</b> = 윤오 OK · 입장 무료</li>'+
+ '</ul>'+
+ '<div style="margin:9px 0 4px;font-size:11.5px;color:#64748b">6/7(일) · 반포한강공원 수변무대 · 워터스플래시 14~15·16~17 / 선셋비치 13~20:30</div>'+
+ '<a class="chk" href="'+naver('반포한강공원 주차장 실시간 만차')+'" target="_blank" rel="noopener">🅿 주차 실시간</a>'+
+ '<a href="'+naver('차없는 잠수교 뚜벅뚜벅 축제 후기')+'" target="_blank" rel="noopener">💬 후기 더보기</a>'+
+ '<a href="'+naver('차없는 잠수교 뚜벅뚜벅 축제 주차 교통')+'" target="_blank" rel="noopener">🔎 공식 확인</a>'+
+ '<div style="margin-top:8px;font-size:11px;color:#b91c1c;font-weight:700">⚠️ 후기 요약 · 만차/시간은 방문 전 실시간 확인</div>';
+</script>
+</body>
+</html>
