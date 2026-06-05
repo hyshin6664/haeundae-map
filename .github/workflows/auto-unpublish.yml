@@ -1,0 +1,39 @@
+name: auto-unpublish
+on:
+  schedule:
+    - cron: '5 21 * * *'   # 06:05 KST 매일 체크
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  pages: write
+  administration: write
+jobs:
+  unpublish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: date gate (KST)
+        id: g
+        run: |
+          T=$(TZ=Asia/Seoul date +%F)
+          echo "today=$T"
+          if [[ "$T" > "2026-06-12" ]]; then echo "go=yes" >> "$GITHUB_OUTPUT"; else echo "go=no" >> "$GITHUB_OUTPUT"; fi
+      - name: checkout
+        if: steps.g.outputs.go == 'yes'
+        uses: actions/checkout@v4
+      - name: takedown content
+        if: steps.g.outputs.go == 'yes'
+        run: |
+          rm -f route.json
+          printf '%s' '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>비공개</title></head><body style="margin:0;font-family:Malgun Gothic,system-ui,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center"><div><div style="font-size:52px">🔒</div><h2>비공개로 전환되었습니다</h2><p>여행이 끝나 지도 공개가 자동 종료되었어요.</p></div></body></html>' > index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -q -f .github/workflows/auto-unpublish.yml
+          git add -A
+          git commit -m "auto: 일주일 경과 — 공개 지도 비공개 전환" || echo nochange
+          git push
+      - name: disable pages (best effort)
+        if: steps.g.outputs.go == 'yes'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X DELETE repos/${{ github.repository }}/pages
