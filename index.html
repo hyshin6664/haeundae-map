@@ -18,10 +18,10 @@
   .car{font-size:30px;line-height:1;filter:drop-shadow(0 2px 3px #0008)}
   .lbl{background:#fff;border:2px solid #16a34a;border-radius:9px;padding:2px 8px;font-weight:800;font-size:13px;color:#15803d;white-space:nowrap}
   .lbl.r{border-color:#dc2626;color:#b91c1c}
-  .sa{background:#ffffff;border:1px solid #7c3aed;border-radius:6px;padding:2px 5px;font-weight:800;font-size:10.5px;color:#5b21b6;box-shadow:0 1px 4px rgba(0,0,0,.22);white-space:nowrap;text-align:center;cursor:pointer;line-height:1.05}
-  .sa .km{display:block;font-weight:700;font-size:8px;opacity:.7;margin-top:1px}
+  .sa{display:inline-block;background:#ffffff;border:1px solid #7c3aed;border-radius:7px;padding:4px 9px;font-weight:800;font-size:11.5px;color:#5b21b6;box-shadow:0 1px 5px rgba(0,0,0,.25);white-space:nowrap;text-align:center;cursor:pointer;line-height:1.15;transform:translate(-50%,-50%)}
+  .sa .km{display:block;font-weight:700;font-size:9px;opacity:.72;margin-top:1px}
   .sa.up{border-color:#0d9488;color:#0f766e}
-  .sa.sel{border-width:2px;outline:2px solid #fbbf24;outline-offset:1px;transform:scale(1.12);z-index:1000}
+  .sa.sel{border-width:2px;outline:2px solid #fbbf24;outline-offset:1px;transform:translate(-50%,-50%) scale(1.12);z-index:1000}
   .bar{position:absolute;top:10px;left:10px;right:10px;z-index:1000;display:flex;gap:8px;flex-wrap:wrap;align-items:center;pointer-events:none}
   .bar>*{pointer-events:auto}
   .chip{background:rgba(255,255,255,.95);border:1px solid #fdba74;border-radius:11px;padding:7px 13px;font-weight:800;font-size:13px;color:#9a3412;box-shadow:0 3px 10px #0002}
@@ -92,7 +92,7 @@ function renderSA(){
   saMarkers.forEach(function(m){map.removeLayer(m);});saMarkers=[];
   SA.filter(function(s){return s.dir===curDir;}).forEach(function(s){
     var html='<div class="sa '+(s.dir==='up'?'up':'')+(s.name===selName?' sel':'')+'"><span>'+shortName(s.name)+'</span><span class="km">'+s.km+'km</span></div>';
-    var m=L.marker([s.lat,s.lon],{icon:L.divIcon({className:'',html:html,iconSize:[0,0],iconAnchor:[0,0]})}).addTo(map);
+    var m=L.marker([s.lat,s.lon],{icon:L.divIcon({className:'',html:html})}).addTo(map);
     m._sa=s;m.on('click',function(){selectSA(s);});saMarkers.push(m);
   });
 }
