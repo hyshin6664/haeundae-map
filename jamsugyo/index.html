@@ -67,7 +67,7 @@
       </div>
     </aside>
   </div>
-  <footer>잠수교 축제 주차 안내 · 반포한강공원 6/7(일) · 만차/요금은 방문 전 실시간 확인 · 지도 © OpenStreetMap</footer>
+  <footer>솔비 · 잠수교 축제 주차 · 반포한강공원 6/7(일) · 반포한강공원 · 후기·팁 요약 추가 · 만차/요금은 방문 전 실시간 확인</footer>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -84,10 +84,11 @@ L.marker(VEN,{icon:L.divIcon({className:'',html:'<div class="venue">🎪</div>',
 
 // 주차장 (좌표 OSM 검증 · 이름은 실제 명칭, 만차/요금은 실시간 확인)
 var PARK=[
- {n:'세빛섬 주차장',rec:1,lat:37.5117,lon:126.9949,d:'행사장(수변무대) 바로 옆 · 유료 · 행사장 최단'},
- {n:'반포한강공원 주차장(수변무대 인근)',rec:2,lat:37.50987,lon:126.99620,d:'공원 내 · 행사장 도보 3~5분'},
- {n:'반포한강공원 주차장(잠수교 남단)',rec:3,lat:37.50841,lon:126.99332,d:'공원 내 · 안내센터 방향'},
- {n:'센트럴시티·고속터미널 주차(대안)',rec:4,lat:37.5048,lon:127.0048,d:'대형 실내 · 만차 시 + 지하철 3·7·9호선 연결',alt:1}
+ {n:'반포한강공원 주차장(반포대교 남단)',short:'반포대교남단',rec:1,lat:37.50987,lon:126.99620,d:'수변무대 최단 · 대형 공영 · 행사장 도보'},
+ {n:'세빛섬 주차장',short:'세빛섬',rec:2,lat:37.51256,lon:126.99726,d:'행사장 바로 옆(세빛섬) · 유료'},
+ {n:'잠원한강공원 주차장(야외수영장 인근)',short:'잠원수영장',rec:3,lat:37.51356,lon:127.00328,d:'동쪽 잠원지구 · 수변무대 도보 10분+'},
+ {n:'서래섬·MELT 인근 주차장',short:'서래섬·MELT',rec:4,lat:37.50656,lon:126.98486,d:'서쪽 서래섬 지구 · 수변무대 1km+ (멀음)'},
+ {n:'센트럴시티·고속터미널 주차(대안)',short:'센트럴시티',rec:5,lat:37.5048,lon:127.0048,d:'대형 실내 · 만차 시 + 지하철 3·7·9호선',alt:1}
 ];
 function dist(a,b){var R=6371000,dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180,la1=a[0]*Math.PI/180,la2=b[0]*Math.PI/180;var x=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;return Math.round(R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)));}
 var card=document.getElementById('card'),cTtl=document.getElementById('cardTtl'),cBody=document.getElementById('cardBody');
@@ -107,14 +108,15 @@ function selPark(p,m){
 }
 PARK.forEach(function(p){
   var cls='pk '+(p.rec===1?'rec1':'')+(p.alt?' alt':'');
-  var html='<div class="'+cls+'"><span>🅿 '+p.n.replace(/\(.*?\)/g,'').replace('주차장','').trim()+'</span><span class="r">'+(p.alt?'대안':p.rec+'순위')+'</span></div>';
+  var html='<div class="'+cls+'"><span>🅿 '+p.short+'</span><span class="r">'+(p.alt?'대안':p.rec+'순위')+'</span></div>';
   var m=L.marker([p.lat,p.lon],{icon:L.divIcon({className:'',html:html})}).addTo(map);
   m._p=p; m.on('click',function(){selPark(p,m);}); pkMarkers.push(m);
 });
+var _all=PARK.map(function(p){return [p.lat,p.lon];}); _all.push(VEN); map.fitBounds(L.latLngBounds(_all),{padding:[45,45]});
 
 // 기본 안내(추천 순위 + 대중교통 + 행사 정보)
 cBody.innerHTML=
- '<div class="rank">🅿 <b>추천</b> ① 세빛섬 → ② 반포한강공원(수변무대) → ③ 반포(잠수교 남단) → ④ 만차 시 센트럴시티+지하철</div>'+
+ '<div class="rank">🅿 <b>추천</b> ① 반포대교 남단(최단) → ② 세빛섬(행사장 옆) → ③ 잠원 야외수영장(동쪽) → ④ 서래섬·MELT(서쪽·멀음) → 만차 시 센트럴시티+지하철</div>'+
  '<div style="margin:9px 0 3px;font-weight:800;color:#1e40af">💬 후기·팁 (요약)</div>'+
  '<ul style="margin:0;padding-left:17px;font-size:12px;color:#3f3f46;line-height:1.7">'+
  '<li>주말 주차 <b>조기 만차</b> → <b>대중교통 강추</b>(구반포·고속터미널)</li>'+
