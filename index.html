@@ -8,54 +8,64 @@
 <style>
   html,body{margin:0;height:100%;font-family:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
   body{display:flex;flex-direction:column}
+  /* 탭 바 (지도 위, 마인드맵 탭) */
+  #tabs{flex:0 0 auto;display:flex;gap:0;background:#fff;border-bottom:1px solid #e5e7eb}
+  #tabs button{flex:1;border:0;background:transparent;padding:11px 8px;font-family:inherit;font-weight:800;font-size:14px;color:#94a3b8;cursor:pointer;border-bottom:3px solid transparent}
+  #tabs button.on{color:#7c3aed;border-bottom-color:#7c3aed;background:linear-gradient(#faf5ff,#fff)}
   #map{flex:1;position:relative;background:#eaf3fb;min-height:0}
-  /* 지도 밖 하단 바 (오른쪽 아래 버튼) */
-  #dock{flex:0 0 auto;height:60px;background:#ffffff;border-top:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;padding:0 14px;box-shadow:0 -3px 12px rgba(0,0,0,.06)}
-  #dock .hint{font-size:12px;font-weight:700;color:#64748b;margin-right:auto}
-  #dock button{padding:10px 14px;border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+  #dock{flex:0 0 auto;min-height:58px;background:#fff;border-top:1px solid #e5e7eb;display:flex;align-items:center;gap:9px;padding:8px 14px;box-shadow:0 -3px 12px rgba(0,0,0,.06);flex-wrap:wrap}
+  #dock .hint{font-size:11.5px;font-weight:700;color:#64748b;margin-right:auto;max-width:48%}
+  #dock button{padding:9px 13px;border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.18)}
   .b-loc{background:linear-gradient(135deg,#2563eb,#0ea5e9)} .b-follow{background:linear-gradient(135deg,#64748b,#94a3b8)} .b-follow.on{background:linear-gradient(135deg,#16a34a,#22c55e)} .b-fit{background:linear-gradient(135deg,#d97706,#f59e0b)}
   .pin{font-size:26px;line-height:1;text-shadow:0 1px 3px #0007}
+  .pin.big{font-size:34px}
   .car{font-size:30px;line-height:1;filter:drop-shadow(0 2px 3px #0008)}
   .lbl{background:#fff;border:2px solid #16a34a;border-radius:9px;padding:2px 8px;font-weight:800;font-size:13px;color:#15803d;white-space:nowrap}
   .lbl.r{border-color:#dc2626;color:#b91c1c}
-  .sa{display:inline-block;background:#ffffff;border:1px solid #7c3aed;border-radius:7px;padding:4px 9px;font-weight:800;font-size:11.5px;color:#5b21b6;box-shadow:0 1px 5px rgba(0,0,0,.25);white-space:nowrap;text-align:center;cursor:pointer;line-height:1.15;transform:translate(-50%,-50%)}
-  .sa .km{display:block;font-weight:700;font-size:9px;opacity:.72;margin-top:1px}
+  /* 휴게소 / 장소 알약 (글씨 길이에 자동 맞춤) */
+  .sa{display:inline-block;background:#fff;border:1px solid #7c3aed;border-radius:7px;padding:4px 9px;font-weight:800;font-size:11.5px;color:#5b21b6;box-shadow:0 1px 5px rgba(0,0,0,.25);white-space:nowrap;text-align:center;cursor:pointer;line-height:1.15;transform:translate(-50%,-50%)}
+  .sa .km{display:block;font-weight:700;font-size:9px;opacity:.72}
   .sa.up{border-color:#0d9488;color:#0f766e}
-  .sa.sel{border-width:2px;outline:2px solid #fbbf24;outline-offset:1px;transform:translate(-50%,-50%) scale(1.12);z-index:1000}
+  .sa.sel{outline:2px solid #fbbf24;outline-offset:1px;transform:translate(-50%,-50%) scale(1.12);z-index:1000}
+  .pl{display:inline-block;background:#fff;border:1.5px solid #16a34a;border-radius:8px;padding:4px 9px;font-weight:800;font-size:11.5px;color:#15803d;box-shadow:0 1px 5px rgba(0,0,0,.25);white-space:nowrap;text-align:center;cursor:pointer;line-height:1.15;transform:translate(-50%,-50%)}
+  .pl.food{border-color:#ea580c;color:#9a3412}
+  .pl .kid{display:block;font-size:8.5px;font-weight:700;opacity:.7}
+  .pl.sel{outline:2px solid #fbbf24;outline-offset:1px;transform:translate(-50%,-50%) scale(1.12);z-index:1000}
   .bar{position:absolute;top:10px;left:10px;right:10px;z-index:1000;display:flex;gap:8px;flex-wrap:wrap;align-items:center;pointer-events:none}
   .bar>*{pointer-events:auto}
   .chip{background:rgba(255,255,255,.95);border:1px solid #fdba74;border-radius:11px;padding:7px 13px;font-weight:800;font-size:13px;color:#9a3412;box-shadow:0 3px 10px #0002}
-  .stat{background:rgba(255,255,255,.95);border:1px solid #cbd5e1;border-radius:11px;padding:7px 13px;font-weight:700;font-size:12.5px;color:#334155;box-shadow:0 3px 10px #0002}
+  .stat{background:rgba(255,255,255,.95);border:1px solid #cbd5e1;border-radius:11px;padding:7px 13px;font-weight:700;font-size:12px;color:#334155;box-shadow:0 3px 10px #0002}
+  .warn{background:rgba(254,242,242,.97);border:1px solid #fecaca;border-radius:11px;padding:7px 13px;font-weight:800;font-size:11.5px;color:#b91c1c;box-shadow:0 3px 10px #0002}
   .seg{display:inline-flex;background:rgba(255,255,255,.95);border:1px solid #cbd5e1;border-radius:11px;overflow:hidden;box-shadow:0 3px 10px #0002}
   .seg button{border:0;background:transparent;padding:7px 13px;font-family:inherit;font-weight:800;font-size:12.5px;color:#64748b;cursor:pointer}
-  .seg button.on{background:linear-gradient(135deg,#ea580c,#f59e0b);color:#fff}
-  .seg button.on.up{background:linear-gradient(135deg,#2563eb,#0ea5e9)}
+  .seg.go button.on{background:linear-gradient(135deg,#ea580c,#f59e0b);color:#fff}
+  .seg.go button.on.up{background:linear-gradient(135deg,#0d9488,#14b8a6)}
+  .seg.bs button.on.food{background:linear-gradient(135deg,#ea580c,#f59e0b);color:#fff}
+  .seg.bs button.on.play{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff}
   .toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:1100;background:rgba(15,23,42,.94);color:#fff;font-weight:700;font-size:13px;padding:11px 18px;border-radius:12px;max-width:88vw;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 8px 24px #0004}
   .toast.show{opacity:1}
   .sheet{position:absolute;left:10px;right:10px;bottom:12px;z-index:1200;background:#fff;border:1px solid #fdba74;border-radius:14px;padding:12px 15px;box-shadow:0 -4px 20px #0003;display:none}
   .sheet.show{display:block}
-  .sheet h3{margin:0 0 6px;font-size:15px;color:#9a3412}
+  .sheet h3{margin:0 0 4px;font-size:15px;color:#9a3412}
   .sheet .meta{font-size:12px;color:#475569;font-weight:700;margin-bottom:8px}
   .sheet a{display:inline-block;margin:3px 6px 0 0;padding:6px 11px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;color:#1d4ed8;font-weight:800;font-size:12px;text-decoration:none}
+  .sheet a.chk{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
   .sheet .x{position:absolute;right:10px;top:8px;border:0;background:none;font-size:18px;cursor:pointer;color:#94a3b8}
   .leaflet-control-attribution{font-size:10px}
 </style>
 </head>
 <body>
+<div id="tabs">
+  <button id="tabGo" class="on">🚗 가는길</button>
+  <button id="tabBs">🏖 부산 도착지</button>
+</div>
 <div id="map">
-  <div class="bar">
-    <span class="chip">🚗 우리 집 → 🏖 해운대</span>
-    <span class="seg" id="seg">
-      <button id="segDown" class="on" data-dir="down">⬇ 가는길</button>
-      <button id="segUp" data-dir="up">⬆ 오는길</button>
-    </span>
-    <span class="stat" id="stat">위치 허용은 한 번만 — 이후 자동 추적 · 휴게소 네모를 누르면 정보</span>
-  </div>
+  <div class="bar" id="bar"></div>
   <div class="toast" id="toast"></div>
   <div class="sheet" id="sheet"><button class="x" id="sheetX">✕</button><h3 id="shName"></h3><div class="meta" id="shMeta"></div><div id="shLinks"></div></div>
 </div>
 <div id="dock">
-  <span class="hint">📍 한 번 허용하면 다음부터 안 물어봐요</span>
+  <span class="hint" id="dockHint">📍 한 번 허용하면 다음부터 안 물어봐요</span>
   <button class="b-loc" id="bLoc">📍 내 위치</button>
   <button class="b-follow" id="bFollow">🎯 따라가기</button>
   <button class="b-fit" id="bFit">🗺 전체</button>
@@ -66,41 +76,124 @@
 var HOME=[37.6537,127.0447], HD=[35.1587,129.1604];
 var map=L.map('map',{zoomControl:true}).setView([36.5,127.9],7);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
-L.marker(HOME,{icon:L.divIcon({className:'',html:'<div class="pin">🏠</div>',iconSize:[26,26],iconAnchor:[13,26]})}).addTo(map).bindTooltip('우리 집·방학동',{permanent:true,direction:'right',className:'lbl',offset:[6,-13]});
-L.marker(HD,{icon:L.divIcon({className:'',html:'<div class="pin">🏖</div>',iconSize:[26,26],iconAnchor:[13,26]})}).addTo(map).bindTooltip('해운대 모래축제',{permanent:true,direction:'right',className:'lbl r',offset:[6,-13]});
 
-var routeBounds=null;
-fetch('route.json?v=4').then(function(r){return r.json();}).then(function(g){
-  var rl=L.geoJSON(g,{style:{color:'#ea580c',weight:6,opacity:.9}}).addTo(map);
-  routeBounds=rl.getBounds(); map.fitBounds(routeBounds,{padding:[50,50]});
-}).catch(function(){ map.fitBounds(L.latLngBounds([HOME,HD]),{padding:[50,50]}); });
+function divPin(emoji,big){return L.divIcon({className:'',html:'<div class="pin'+(big?' big':'')+'">'+emoji+'</div>',iconSize:[26,26],iconAnchor:[13,26]});}
+var homeM=L.marker(HOME,{icon:divPin('🏠')}).bindTooltip('우리 집·방학동',{permanent:true,direction:'right',className:'lbl',offset:[6,-13]});
+var hdM=L.marker(HD,{icon:divPin('🏖',true)}).bindTooltip('해운대 모래축제',{permanent:true,direction:'right',className:'lbl r',offset:[6,-15]});
 
+/* 경로 */
+var routeLayer=null,routeBounds=null;
+fetch('route.json?v=5').then(function(r){return r.json();}).then(function(g){
+  routeLayer=L.geoJSON(g,{style:{color:'#ea580c',weight:6,opacity:.9}});
+  routeBounds=routeLayer.getBounds(); if(TAB==='go'){routeLayer.addTo(map);map.fitBounds(routeBounds,{padding:[50,50]});}
+}).catch(function(){});
+
+/* 휴게소 */
 var SA=[],saMarkers=[],curDir='down',selName=null;
 function shortName(n){var s=n.replace(/휴게소[\s\S]*$/,'').replace(/\(.*?\)/g,'').replace(/(부산|서울|양평|인천|창원|마산|하남|일산)\s*방향/g,'').trim();return s||n;}
-function saLinks(name){var q=encodeURIComponent(name),b=encodeURIComponent(shortName(name)+' 휴게소');return [['🔎 휴게소 정보','https://search.naver.com/search.naver?query='+q],['🍜 맛거리','https://search.naver.com/search.naver?query='+b+' 맛집'],['🔌 전기차 충전','https://search.naver.com/search.naver?query='+q+' 전기차 충전소'],['🚦 실시간 혼잡','https://search.naver.com/search.naver?query='+q+' 혼잡']];}
-function dirKor(d){return d==='down'?'가는길 (서울→부산)':'오는길 (부산→서울)';}
-function selectSA(s){
-  selName=s.name;
-  saMarkers.forEach(function(m){var el=m.getElement&&m.getElement();if(el){var d=el.querySelector('.sa');if(d)d.classList.toggle('sel',m._sa.name===s.name);}});
-  document.getElementById('shName').textContent='⛽ '+s.name;
-  document.getElementById('shMeta').textContent=dirKor(s.dir)+' · 출발에서 약 '+s.km+'km · 해운대까지 약 '+s.tokm+'km';
-  document.getElementById('shLinks').innerHTML=saLinks(s.name).map(function(a){return '<a href="'+a[1]+'" target="_blank" rel="noopener">'+a[0]+'</a>';}).join('');
+function naver(q){return 'https://search.naver.com/search.naver?query='+encodeURIComponent(q);}
+function nmap(q){return 'https://map.naver.com/p/search/'+encodeURIComponent(q);}
+function saLinks(name){return [['🔎 휴게소 정보',naver(name)],['🍜 맛거리',naver(shortName(name)+' 휴게소 맛집')],['🔌 전기차 충전',naver(name+' 전기차 충전소')],['🚦 실시간 혼잡',naver(name+' 혼잡')]];}
+function showSheet(title,meta,links){
+  document.getElementById('shName').textContent=title;
+  document.getElementById('shMeta').textContent=meta;
+  document.getElementById('shLinks').innerHTML=links.map(function(a){return '<a class="'+(a[2]||'')+'" href="'+a[1]+'" target="_blank" rel="noopener">'+a[0]+'</a>';}).join('');
   document.getElementById('sheet').classList.add('show');
 }
 document.getElementById('sheetX').onclick=function(){document.getElementById('sheet').classList.remove('show');};
+function clearSA(){saMarkers.forEach(function(m){map.removeLayer(m);});saMarkers=[];}
 function renderSA(){
-  saMarkers.forEach(function(m){map.removeLayer(m);});saMarkers=[];
+  clearSA(); if(TAB!=='go')return;
   SA.filter(function(s){return s.dir===curDir;}).forEach(function(s){
-    var html='<div class="sa '+(s.dir==='up'?'up':'')+(s.name===selName?' sel':'')+'"><span>'+shortName(s.name)+'</span><span class="km">'+s.km+'km</span></div>';
+    var html='<div class="sa '+(s.dir==='up'?'up':'')+'"><span>'+shortName(s.name)+'</span><span class="km">'+s.km+'km</span></div>';
     var m=L.marker([s.lat,s.lon],{icon:L.divIcon({className:'',html:html})}).addTo(map);
-    m._sa=s;m.on('click',function(){selectSA(s);});saMarkers.push(m);
+    m.on('click',function(){
+      showSheet('⛽ '+s.name,(s.dir==='down'?'가는길':'오는길')+' · 출발에서 약 '+s.km+'km · 해운대까지 약 '+s.tokm+'km',saLinks(s.name));
+    });
+    saMarkers.push(m);
   });
 }
-fetch('restareas.json?v=4').then(function(r){return r.json();}).then(function(a){SA=a;renderSA();}).catch(function(){});
-document.getElementById('segDown').onclick=function(){curDir='down';this.classList.add('on');document.getElementById('segUp').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderSA();};
-document.getElementById('segUp').onclick=function(){curDir='up';this.classList.add('on','up');document.getElementById('segDown').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderSA();};
+fetch('restareas.json?v=5').then(function(r){return r.json();}).then(function(a){SA=a;renderSA();}).catch(function(){});
 
-/* 현재 위치 — 한 번 허용 후 영구(브라우저가 origin 기억) */
+/* 부산 도착지 — 식당/놀거리 (영업은 단정 안 함 · 실시간 확인 링크) */
+var BUSAN=[
+{n:'해운대 해수욕장',c:'play',kid:1,d:'모래놀이·바다 (모래축제 메인)',lat:35.15929,lon:129.15861},
+{n:'부산 아쿠아리움',c:'play',kid:1,d:'실내 수족관·비와도 OK·아이 인기',lat:35.15919,lon:129.16102},
+{n:'해운대 블루라인파크',c:'play',kid:1,d:'스카이캡슐·해변열차·청사포 뷰',lat:35.1601,lon:129.1726},
+{n:'부산 엑스더스카이',c:'play',kid:1,d:'해운대 LCT 고층 전망대',lat:35.15983,lon:129.16974},
+{n:'동백섬·누리마루',c:'play',kid:1,d:'해변 산책로·등대·무료',lat:35.15235,lon:129.15137},
+{n:'더베이 101',c:'play',kid:0,d:'마리나 야경 명소',lat:35.15647,lon:129.15197},
+{n:'송정 해수욕장',c:'play',kid:1,d:'한적한 해변·서핑',lat:35.17524,lon:129.19742},
+{n:'광안리 해수욕장',c:'play',kid:1,d:'광안대교 야경',lat:35.15089,lon:129.11665},
+{n:'해운대 전통시장',c:'food',kid:1,d:'먹거리 다양(비해산물도 많음)',lat:35.16155,lon:129.16243},
+{n:'해운대 구남로',c:'food',kid:1,d:'해운대 중심 먹자거리',lat:35.16167,lon:129.16035},
+{n:'해리단길',c:'food',kid:0,d:'트렌디 카페·식당',lat:35.16537,lon:129.15762},
+{n:'센텀시티 신세계',c:'food',kid:1,d:'실내 식당가·키즈·비올때 안전',lat:35.16876,lon:129.12964}
+];
+var plMarkers=[],destM=null,curCat='food';
+function clearPL(){plMarkers.forEach(function(m){map.removeLayer(m);});plMarkers=[];}
+function plLinks(p){
+  var foodQ = p.c==='food' ? naver(p.n+' 아이랑 비해산물 맛집 오늘 영업') : naver(p.n+' 오늘 영업시간');
+  return [['🔎 오늘 영업·최신 확인',foodQ,'chk'],['🗺 지도·길찾기',nmap(p.n)]];
+}
+function renderPL(){
+  clearPL(); if(TAB!=='bs')return;
+  BUSAN.filter(function(p){return p.c===curCat;}).forEach(function(p){
+    var html='<div class="pl '+(p.c==='food'?'food':'')+'"><span>'+(p.kid?'⭐':'')+p.n+'</span></div>';
+    var m=L.marker([p.lat,p.lon],{icon:L.divIcon({className:'',html:html})}).addTo(map);
+    m.on('click',function(){
+      var meta=(p.c==='food'?'🍽 식당':'🎡 놀거리')+(p.kid?' · 👦아이 OK':'')+' · '+p.d;
+      showSheet((p.kid?'⭐ ':'')+p.n, meta, plLinks(p));
+    });
+    plMarkers.push(m);
+  });
+}
+
+/* ===== 탭 ===== */
+var TAB=(location.search.indexOf('tab=busan')>=0)?'bs':'go';
+var bar=document.getElementById('bar');
+function buildBar(){
+  if(TAB==='go'){
+    bar.innerHTML='<span class="chip">🚗 우리 집 → 🏖 해운대 (경부 435km)</span>'+
+      '<span class="seg go"><button id="segDown" class="on">⬇ 가는길</button><button id="segUp">⬆ 오는길</button></span>'+
+      '<span class="stat" id="stat">휴게소 네모를 누르면 정보 · 위치 허용은 한 번만</span>';
+    document.getElementById('segDown').onclick=function(){curDir='down';this.classList.add('on');document.getElementById('segUp').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderSA();};
+    document.getElementById('segUp').onclick=function(){curDir='up';this.classList.add('on','up');document.getElementById('segDown').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderSA();};
+  }else{
+    bar.innerHTML='<span class="seg bs"><button id="segFood" class="food on">🍽 식당</button><button id="segPlay" class="play">🎡 놀거리</button></span>'+
+      '<span class="warn">⚠️ 추천 후보예요 · 영업/휴무는 「오늘 영업 확인」으로 방문 전 꼭 확인 (윤오 회·생선 X)</span>';
+    document.getElementById('segFood').onclick=function(){curCat='food';this.classList.add('on');document.getElementById('segPlay').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderPL();};
+    document.getElementById('segPlay').onclick=function(){curCat='play';this.classList.add('on');document.getElementById('segFood').classList.remove('on');document.getElementById('sheet').classList.remove('show');renderPL();};
+  }
+}
+function setTab(t){
+  TAB=t;
+  document.getElementById('tabGo').classList.toggle('on',t==='go');
+  document.getElementById('tabBs').classList.toggle('on',t==='bs');
+  document.getElementById('sheet').classList.remove('show');
+  buildBar();
+  if(t==='go'){
+    // 부산 요소 제거
+    clearPL(); if(destM){map.removeLayer(destM);destM=null;}
+    homeM.addTo(map); hdM.addTo(map);
+    if(routeLayer)routeLayer.addTo(map);
+    renderSA();
+    document.getElementById('dockHint').textContent='📍 한 번 허용하면 다음부터 안 물어봐요';
+    if(routeBounds)map.fitBounds(routeBounds,{padding:[50,50]});
+  }else{
+    // 가는길 요소 제거
+    clearSA(); if(routeLayer)map.removeLayer(routeLayer); map.removeLayer(homeM);
+    hdM.addTo(map); // 목적지(해운대)는 부산 탭에도 표시
+    destM=L.marker(HD,{icon:divPin('📍',true)}).addTo(map).bindTooltip('목적지 · 해운대 모래축제',{permanent:true,direction:'top',className:'lbl r',offset:[0,-26]});
+    renderPL();
+    document.getElementById('dockHint').textContent='⭐=아이 OK · 네모 누르면 정보·오늘 영업 확인';
+    map.setView([35.162,129.16],13);
+  }
+}
+document.getElementById('tabGo').onclick=function(){setTab('go');};
+document.getElementById('tabBs').onclick=function(){setTab('bs');};
+
+/* ===== 현재 위치 ===== */
 var carMarker=null,accCircle=null,follow=true,firstFix=true,watchId=null;
 var toastEl=document.getElementById('toast');
 function toast(m){toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(toastEl._t);toastEl._t=setTimeout(function(){toastEl.classList.remove('show');},3500);}
@@ -108,18 +201,23 @@ function hav(a,b){var R=6371,dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.
 function onPos(p){var ll=[p.coords.latitude,p.coords.longitude],acc=p.coords.accuracy||0;
   if(!carMarker){carMarker=L.marker(ll,{icon:L.divIcon({className:'',html:'<div class="car">🚗</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);accCircle=L.circle(ll,{radius:acc,color:'#2563eb',weight:1,fillColor:'#3b82f6',fillOpacity:.12}).addTo(map);}
   else{carMarker.setLatLng(ll);accCircle.setLatLng(ll).setRadius(acc);}
-  document.getElementById('stat').textContent='🚗 현재 위치 추적 중 · 해운대까지 직선 '+hav(ll,HD).toFixed(0)+'km (정확도 ±'+Math.round(acc)+'m)';
+  var st=document.getElementById('stat'); if(st)st.textContent='🚗 현재 위치 추적 중 · 해운대까지 직선 '+hav(ll,HD).toFixed(0)+'km (±'+Math.round(acc)+'m)';
   if(firstFix){firstFix=false;map.setView(ll,12);toast('현재 위치를 찾았어요 🚗');}else if(follow){map.panTo(ll);}}
-function onErr(e){var m=e.code===1?'위치 권한이 거부됐어요. 주소창 자물쇠 → 위치 허용으로 바꿔주세요.':e.code===2?'위치를 찾을 수 없어요(신호 약함).':'위치 확인 시간 초과.';document.getElementById('stat').textContent='⚠️ '+m;toast(m);}
-function startWatch(){if(!('geolocation' in navigator)){toast('이 기기는 위치 기능 미지원');return;}if(watchId!=null)navigator.geolocation.clearWatch(watchId);watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:5000,timeout:15000});}
+function onErr(e){toast(e.code===1?'위치 권한이 거부됐어요. 주소창 자물쇠 → 위치 허용':'위치를 찾을 수 없어요');}
+function startWatch(){if(!('geolocation' in navigator)){toast('이 기기는 위치 미지원');return;}if(watchId!=null)navigator.geolocation.clearWatch(watchId);watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:5000,timeout:15000});}
 function setFollowUI(){var b=document.getElementById('bFollow');b.classList.toggle('on',follow);b.textContent=follow?'🎯 따라가는 중':'🎯 따라가기';}
 document.getElementById('bLoc').onclick=function(){firstFix=true;follow=true;setFollowUI();startWatch();toast('현재 위치 확인 중…');};
 document.getElementById('bFollow').onclick=function(){follow=!follow;setFollowUI();if(follow&&carMarker)map.panTo(carMarker.getLatLng());};
-document.getElementById('bFit').onclick=function(){if(routeBounds)map.fitBounds(routeBounds,{padding:[50,50]});};
+document.getElementById('bFit').onclick=function(){
+  if(TAB==='go'&&routeBounds){map.fitBounds(routeBounds,{padding:[50,50]});}
+  else{var pts=BUSAN.filter(function(p){return p.c===curCat;}).map(function(p){return [p.lat,p.lon];});pts.push(HD);if(pts.length)map.fitBounds(L.latLngBounds(pts),{padding:[60,60]});}
+};
 map.on('dragstart',function(){if(follow){follow=false;setFollowUI();}});
 setFollowUI();
-/* 권한 이미 허용돼 있으면 조용히 시작, 아니면 첫 1회만 프롬프트 */
 if(navigator.permissions&&navigator.permissions.query){navigator.permissions.query({name:'geolocation'}).then(function(){startWatch();}).catch(function(){startWatch();});}else{startWatch();}
+
+/* 초기 탭 */
+setTab(TAB);
 </script>
 </body>
 </html>
