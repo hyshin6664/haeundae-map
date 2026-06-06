@@ -67,14 +67,14 @@
       </div>
     </aside>
   </div>
-  <footer>솔비 · 잠수교 축제 주차 · 반포한강공원 6/7(일) · 반포한강공원 · 후기·팁 요약 추가 · 만차/요금은 방문 전 실시간 확인</footer>
+  <footer>솔비 · 잠수교 축제 주차 v2026-06-05-4(주차장명·위치 보정) · 반포한강공원 · 후기·팁 요약 추가 · 만차/요금은 방문 전 실시간 확인</footer>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 var VEN=[37.5113,126.9952]; // 행사장 수변무대(세빛섬·잠수교 남단 인근)
 var map=L.map('map',{zoomControl:true}).setView(VEN,15);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
 function naver(q){return 'https://search.naver.com/search.naver?query='+encodeURIComponent(q);}
 function nmap(q){return 'https://map.naver.com/p/search/'+encodeURIComponent(q);}
 
