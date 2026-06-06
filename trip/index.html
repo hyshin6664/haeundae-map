@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>🧭 여행 후보지</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  :root{--p50:#f5f3ff;--p100:#ede9fe;--p200:#ddd6fe;--p600:#7c3aed;--p800:#5b21b6;--p900:#4c1d95;--ink:#0f172a}
+  *{box-sizing:border-box}
+  html,body{height:100vh;overflow:hidden;margin:0;font-family:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;color:var(--ink);background:linear-gradient(135deg,#ede9fe,#fce7f3 50%,#dbeafe)}
+  .header-frame{position:fixed;top:14px;left:14px;right:14px;height:78px;z-index:40;background:rgba(255,255,255,.5);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.7);border-radius:20px;box-shadow:0 6px 24px rgba(15,23,42,.07)}
+  .today-pill{position:fixed;top:24px;left:24px;z-index:50;background:linear-gradient(135deg,#ede9fe,#ddd6fe);padding:10px 22px;border-radius:14px;font-size:22px;font-weight:900;color:var(--p800);box-shadow:0 4px 14px rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.25);text-decoration:none}
+  .wrap{height:100vh;padding:108px 18px 16px;display:flex;flex-direction:column;gap:12px}
+  .main{display:flex;gap:16px;flex:1;min-height:0}
+  .canvas{flex:2;display:flex;flex-direction:column;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.8);border-radius:18px;box-shadow:0 8px 24px rgba(15,23,42,.05);overflow:hidden;min-height:0}
+  .canvas-head{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px dashed var(--p200);flex-wrap:wrap}
+  .canvas-head h2{margin:0;font-size:15px;font-weight:900;color:var(--p900)}
+  .canvas-head .sub{font-size:11.5px;font-weight:700;color:var(--p800);opacity:.8}
+  .canvas-head .back{margin-left:auto;padding:5px 11px;border-radius:9px;background:#fff;text-decoration:none;color:#5b21b6;font-size:11.5px;font-weight:800;border:1px solid var(--p200)}
+  .canvas-head .shareb{margin-left:6px;width:30px;height:30px;border-radius:50%;border:1px solid var(--p200);background:linear-gradient(135deg,#ede9fe,#fff);color:#5b21b6;font-size:14px;cursor:pointer;font-family:inherit}
+  #map{flex:1;min-height:0;position:relative;background:#eaf3fb}
+  .home{font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px #0008)}
+  .hlbl{background:#fff;border:2px solid #16a34a;border-radius:9px;padding:2px 8px;font-weight:800;font-size:12px;color:#15803d;white-space:nowrap}
+  .cd{display:inline-block;background:#fff;border:1.5px solid #7c3aed;border-radius:8px;padding:4px 9px;font-weight:800;font-size:11.5px;color:#5b21b6;box-shadow:0 1px 5px rgba(0,0,0,.22);white-space:nowrap;text-align:center;line-height:1.15;cursor:pointer;transform:translate(-50%,-50%)}
+  .cd .m{display:block;font-size:8.5px;font-weight:800;color:#7c3aed;opacity:.85}
+  .cd.sel{outline:2px solid #fbbf24;outline-offset:1px;transform:translate(-50%,-50%) scale(1.12);z-index:1000}
+  .aside{flex:1;min-width:280px;display:flex;flex-direction:column;min-height:0}
+  .detail-card{flex:1;display:flex;flex-direction:column;min-height:0;background:rgba(255,255,255,.92);border:1.5px solid var(--p200);border-radius:16px;padding:16px 18px;box-shadow:0 6px 20px rgba(124,58,237,.08)}
+  .detail-card .dttl{flex-shrink:0;font-size:15px;font-weight:900;color:var(--p900);margin-bottom:10px;padding-bottom:9px;border-bottom:1px dashed var(--p200)}
+  .detail-card .dbody{flex:1;overflow-y:auto;font-size:12.5px;color:#3f3f46;line-height:1.7;font-weight:600}
+  .detail-card .dbody .big{font-size:26px;font-weight:900;color:var(--p800);line-height:1.1;margin:2px 0 2px}
+  .detail-card .dbody .big small{font-size:13px;color:#64748b;font-weight:800}
+  .detail-card .dbody table{width:100%;border-collapse:collapse;margin:4px 0 8px}
+  .detail-card .dbody table td{padding:6px 8px;border-bottom:1px solid var(--p100);vertical-align:top}
+  .detail-card .dbody table td.k{width:54px;font-weight:800;color:var(--p800);white-space:nowrap}
+  .detail-card .dbody a{display:inline-block;margin:5px 7px 0 0;padding:8px 13px;background:var(--p50);border:1px solid var(--p200);border-radius:10px;color:var(--p600);font-weight:800;font-size:12.5px;text-decoration:none}
+  .detail-card .dbody a.go{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border-color:transparent}
+  .detail-card .dbody .cand{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px;margin-bottom:6px;background:#faf5ff;border:1px solid var(--p100);border-radius:11px;cursor:pointer}
+  .detail-card .dbody .cand:hover{border-color:var(--p600)}
+  .detail-card .dbody .cand b{color:var(--p900)}
+  .detail-card .dbody .cand .t{font-weight:900;color:#15803d;white-space:nowrap}
+  footer{flex-shrink:0;text-align:center;font-size:10.5px;color:#94a3b8;font-weight:700}
+  @media(max-width:900px){html,body{height:auto;overflow:auto}.wrap{height:auto;min-height:100vh;padding:104px 12px 16px}.main{flex-direction:column}.canvas{min-height:58vh}.aside{min-height:340px}}
+</style>
+</head>
+<body>
+<div class="header-frame"></div>
+<span class="today-pill" id="todayPill">06월 05일 (금)</span>
+<script>(function(){var W=['일','월','화','수','목','금','토'];var d=new Date();var mm=String(d.getMonth()+1).padStart(2,'0');var dd=String(d.getDate()).padStart(2,'0');document.getElementById('todayPill').textContent=mm+'월 '+dd+'일 ('+W[d.getDay()]+')';})();</script>
+
+<div class="wrap">
+  <div class="main">
+    <div class="canvas">
+      <div class="canvas-head">
+        <h2>🧭 여행 후보지</h2>
+        <span class="sub">집(방학동) ↔ 후보지 · 핀을 누르면 오른쪽에 링크·차 시간</span>
+        <span style="margin-left:auto;font-size:11px;color:#94a3b8;font-weight:700">공유용</span>
+      </div>
+      <div id="map"></div>
+    </div>
+    <aside class="aside">
+      <div class="detail-card" id="card">
+        <div class="dttl" id="cardTtl">🧭 여행 후보지 (집에서 차로)</div>
+        <div class="dbody" id="cardBody"></div>
+      </div>
+    </aside>
+  </div>
+  <footer>솔비 · 여행 후보지 · 집(방학동) 출발 차량 기준 · 집(방학동) 출발 차량 기준 · 좌표·소요시간 OSRM</footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var HOME=[37.6537,127.0447];
+var CAND=[
+ {n:'모던하우스 3도씨 쿨링 팝업',short:'여의도 팝업',cat:'팝업 · 여의도',feat:'모던하우스 여름 쿨링 팝업 · 실내·기간한정 · 집에서 가까움',addr:'서울 영등포구 여의도동',lat:37.52486,lon:126.92682,min:21,km:21.2,url:'https://map.naver.com/p/entry/place/2003552546'},
+ {n:'포천 글램핑 조이풀',short:'포천 글램핑',cat:'글램핑 · 포천',feat:'서울근교 글램핑 · 수영장(풀)·애견동반 · 아이랑 1박 좋음',addr:'경기 포천시 화현면',lat:37.88201,lon:127.27870,min:41,km:39.0,url:'https://map.naver.com/p/entry/place/2053729902'},
+ {n:'죽도 상화원',short:'보령 상화원',cat:'전통정원 · 보령',feat:'한국식 전통정원(2km 회랑·한옥·서해 낙조) · ⚠️ 금·토·일·공휴일만 개방·입장 7천원',addr:'충남 보령시 남포면',lat:36.27782,lon:126.53750,min:146,km:185,url:'https://map.naver.com/p/entry/place/34325453'}
+];
+var SHORTS='https://m.naver.com/shorts/?mediaId=A05B338A5E88CE8FED2257707F7CE007402B&serviceType=CLIP';
+function fmt(m){return m>=60?(Math.floor(m/60)+'시간 '+(m%60)+'분'):(m+'분');}
+
+var map=L.map('map',{zoomControl:true}).setView([37.4,127.0],8);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+L.marker(HOME,{icon:L.divIcon({className:'',html:'<div class="home">🏠</div>',iconSize:[26,26],iconAnchor:[13,26]})}).addTo(map)
+  .bindTooltip('우리 집 · 방학동',{permanent:true,direction:'right',className:'hlbl',offset:[6,-13]});
+
+var card=document.getElementById('card'),cTtl=document.getElementById('cardTtl'),cBody=document.getElementById('cardBody');
+var cdMarkers=[];
+function selCand(c){
+  cdMarkers.forEach(function(x){var el=x.getElement&&x.getElement();if(el){var d=el.querySelector('.cd');if(d)d.classList.toggle('sel',x._c===c);}});
+  cTtl.textContent='📍 '+c.n;
+  cBody.innerHTML='<div class="big">🚗 '+fmt(c.min)+' <small>('+c.km+'km · 집에서)</small></div>'+
+    '<table>'+
+    '<tr><td class="k">분류</td><td>'+c.cat+'</td></tr>'+
+    '<tr><td class="k">특징</td><td>'+c.feat+'</td></tr>'+
+    '<tr><td class="k">주소</td><td>'+c.addr+'</td></tr>'+
+    '</table>'+
+    '<a class="go" href="'+c.url+'" target="_blank" rel="noopener">🗺 네이버 지도 (상세·길찾기)</a>'+
+    '<a href="'+SHORTS+'" target="_blank" rel="noopener">📺 관련 영상</a>'+
+    '<div style="margin-top:10px;font-size:11.5px;color:#64748b">※ 영업시간·예약은 네이버 지도에서 확인하세요.</div>';
+}
+function showHome(){
+  cTtl.textContent='🧭 여행 후보지 (집에서 차로)';
+  var rows=CAND.map(function(c){return '<div class="cand" data-id="'+c.url+'"><span>📍 <b>'+c.n+'</b><br><span style="font-size:11px;color:#64748b">'+c.cat+'</span></span><span class="t">🚗 '+fmt(c.min)+'</span></div>';}).join('');
+  cBody.innerHTML=rows+
+    '<a href="'+SHORTS+'" target="_blank" rel="noopener">📺 와이프 공유 영상</a>'+
+    '<div style="margin-top:9px;font-size:11.5px;color:#64748b">핀(또는 위 항목)을 누르면 상세·네이버 지도 링크가 떠요. 시간=집(방학동) 출발 차량 기준(실시간 교통 제외).</div>';
+  Array.prototype.forEach.call(cBody.querySelectorAll('.cand'),function(el){
+    el.addEventListener('click',function(){var c=CAND.filter(function(x){return x.url===el.dataset.id;})[0];if(c){selCand(c);map.setView([c.lat,c.lon],11);}});
+  });
+}
+CAND.forEach(function(c){
+  var html='<div class="cd"><span>📍 '+c.short+'</span><span class="m">🚗 '+fmt(c.min)+'</span></div>';
+  var m=L.marker([c.lat,c.lon],{icon:L.divIcon({className:'',html:html})}).addTo(map);
+  m._c=c; m.on('click',function(){selCand(c);}); cdMarkers.push(m);
+});
+var _all=CAND.map(function(c){return [c.lat,c.lon];}); _all.push(HOME); map.fitBounds(L.latLngBounds(_all),{padding:[50,50]});
+showHome();
+</script>
+</body>
+</html>
