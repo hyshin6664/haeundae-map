@@ -79,6 +79,7 @@ var CAND=[
 ];
 var SHORTS='https://m.naver.com/shorts/?mediaId=A05B338A5E88CE8FED2257707F7CE007402B&serviceType=CLIP';
 function fmt(m){return m>=60?(Math.floor(m/60)+'시간 '+(m%60)+'분'):(m+'분');}
+function vidSearch(n){return 'https://search.naver.com/search.naver?where=video&query='+encodeURIComponent(n+' 여행');}
 
 var map=L.map('map',{zoomControl:true}).setView([37.4,127.0],8);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
@@ -97,14 +98,14 @@ function selCand(c){
     '<tr><td class="k">주소</td><td>'+c.addr+'</td></tr>'+
     '</table>'+
     '<a class="go" href="'+c.url+'" target="_blank" rel="noopener">🗺 네이버 지도 (상세·길찾기)</a>'+
-    '<a href="'+SHORTS+'" target="_blank" rel="noopener">📺 관련 영상</a>'+
+    '<a href="'+vidSearch(c.n)+'" target="_blank" rel="noopener">📺 '+c.short+' 영상 검색</a>'+
     '<div style="margin-top:10px;font-size:11.5px;color:#64748b">※ 영업시간·예약은 네이버 지도에서 확인하세요.</div>';
 }
 function showHome(){
   cTtl.textContent='🧭 여행 후보지 (집에서 차로)';
   var rows=CAND.map(function(c){return '<div class="cand" data-id="'+c.url+'"><span>📍 <b>'+c.n+'</b><br><span style="font-size:11px;color:#64748b">'+c.cat+'</span></span><span class="t">🚗 '+fmt(c.min)+'</span></div>';}).join('');
   cBody.innerHTML=rows+
-    '<a href="'+SHORTS+'" target="_blank" rel="noopener">📺 와이프 공유 영상</a>'+
+    '<a href="'+SHORTS+'" target="_blank" rel="noopener">📺 와이프가 준 영상(쇼츠)</a>'+
     '<div style="margin-top:9px;font-size:11.5px;color:#64748b">핀(또는 위 항목)을 누르면 상세·네이버 지도 링크가 떠요. 시간=집(방학동) 출발 차량 기준(실시간 교통 제외).</div>';
   Array.prototype.forEach.call(cBody.querySelectorAll('.cand'),function(el){
     el.addEventListener('click',function(){var c=CAND.filter(function(x){return x.url===el.dataset.id;})[0];if(c){selCand(c);map.setView([c.lat,c.lon],11);}});
